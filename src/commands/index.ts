@@ -62,6 +62,52 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
 		writeTerminal.run(args);
 	};
 
+	// Resolve the file/folder paths to add from any entry point: explorer
+	// multi-select (uri, uris[]), a single resource (tab / single explorer item),
+	// or the active editor (command palette).
+	const resolveAddTargets = (arg: unknown, args: unknown): string[] => {
+		if (Array.isArray(args)) {
+			const uris = args.filter(
+				(u): u is vscode.Uri => u instanceof vscode.Uri && u.scheme === 'file',
+			);
+			if (uris.length > 0) {
+				return uris.map((u) => u.fsPath);
+			}
+		}
+		if (arg instanceof vscode.Uri && arg.scheme === 'file') {
+			return [arg.fsPath];
+		}
+		const active = vscode.window.activeTextEditor?.document.uri;
+		if (active && active.scheme === 'file') {
+			return [active.fsPath];
+		}
+		return [];
+	};
+
+	const addPaths = (fsPaths: string[]): void => {
+		if (!requireReady()) {
+			return;
+		}
+		if (fsPaths.length === 0) {
+			void vscode.window.showWarningMessage('chezmoi: no file to add.');
+			return;
+		}
+		const addable = fsPaths.filter((p) => !context.isInsideSource(p));
+		const skipped = fsPaths.length - addable.length;
+		if (addable.length === 0) {
+			void vscode.window.showWarningMessage(
+				'chezmoi: selected file(s) are already in the source directory.',
+			);
+			return;
+		}
+		if (skipped > 0) {
+			void vscode.window.showInformationMessage(
+				`chezmoi: skipped ${skipped} item(s) already in the source directory.`,
+			);
+		}
+		runWrite(['add', ...addable]);
+	};
+
 	const register = vscode.commands.registerCommand;
 	const disposables: vscode.Disposable[] = [];
 
@@ -103,19 +149,11 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
 		}),
 
 		register('chezmoi-vsc.addCurrentFile', () => {
-			const editor = vscode.window.activeTextEditor;
-			if (!editor || editor.document.uri.scheme !== 'file') {
-				void vscode.window.showWarningMessage('chezmoi: no active file to add.');
-				return;
-			}
-			const fsPath = editor.document.uri.fsPath;
-			if (context.isInsideSource(fsPath)) {
-				void vscode.window.showWarningMessage(
-					'chezmoi: this file is already in the source directory.',
-				);
-				return;
-			}
-			runWrite(['add', fsPath]);
+			addPaths(resolveAddTargets(undefined, undefined));
+		}),
+
+		register('chezmoi-vsc.addFile', (arg?: unknown, args?: unknown) => {
+			addPaths(resolveAddTargets(arg, args));
 		}),
 
 		register('chezmoi-vsc.refresh', async () => {

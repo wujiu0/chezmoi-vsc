@@ -54,6 +54,11 @@
         "category": "Chezmoi"
       },
       {
+        "command": "chezmoi-vsc.addFile",
+        "title": "Add to chezmoi",
+        "category": "Chezmoi"
+      },
+      {
         "command": "chezmoi-vsc.refresh",
         "title": "Refresh",
         "category": "Chezmoi",
@@ -164,6 +169,24 @@
         {
           "command": "chezmoi-vsc.statusBarMenu",
           "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.addFile",
+          "when": "false"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "chezmoi-vsc.addFile",
+          "when": "resourceScheme == file",
+          "group": "chezmoi@1"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "chezmoi-vsc.addFile",
+          "when": "resourceScheme == file",
+          "group": "chezmoi@1"
         }
       ],
       "editor/title": [
