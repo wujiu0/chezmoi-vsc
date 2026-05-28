@@ -9,6 +9,7 @@ import { registerPreview } from './features/preview/commands';
 import { StatusBar } from './features/statusBar/item';
 import { registerWatcher } from './features/watcher';
 import { TreeProvider, TREE_VIEW_ID } from './features/tree/provider';
+import { ChezmoiDecorationProvider } from './features/tree/decorations';
 import { WriteTerminal } from './features/writeTerminal';
 import { registerCommands } from './commands';
 
@@ -69,6 +70,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 		treeDataProvider: treeProvider,
 	});
 	context.subscriptions.push(treeProvider, treeView);
+
+	const decorationProvider = new ChezmoiDecorationProvider(chezmoi, statusService);
+	context.subscriptions.push(
+		decorationProvider,
+		vscode.window.registerFileDecorationProvider(decorationProvider),
+	);
 
 	context.subscriptions.push(
 		...registerCommands({

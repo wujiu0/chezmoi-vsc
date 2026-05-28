@@ -69,14 +69,10 @@ export function toTreeItem(node: TreeNode, homeDir: string): vscode.TreeItem {
 		return item;
 	}
 
-	// Regular file/symlink: themed file icon via resourceUri, status badge if any.
+	// Regular file/symlink: themed file icon via resourceUri. Changed files get
+	// their color + badge from ChezmoiDecorationProvider (git-style), not here.
 	item.resourceUri = vscode.Uri.file(path.join(homeDir, node.targetRelPath));
-	if (node.entry) {
-		item.description = codeLabel(node.entry);
-		item.contextValue = 'chezmoiFileChanged';
-	} else {
-		item.contextValue = 'chezmoiFile';
-	}
+	item.contextValue = node.entry ? 'chezmoiFileChanged' : 'chezmoiFile';
 	item.command = {
 		command: 'chezmoi-vsc.openEntry',
 		title: 'Open',
