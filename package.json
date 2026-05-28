@@ -1,23 +1,309 @@
 {
   "name": "chezmoi-vsc",
-  "displayName": "chezmoi-vsc",
-  "description": "",
-  "version": "0.0.1",
+  "displayName": "chezmoi",
+  "description": "Bring the chezmoi dotfiles workflow into VS Code: live template preview, apply reminders, and a pending-changes view.",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.120.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "SCM Providers"
   ],
-  "activationEvents": [],
+  "keywords": [
+    "chezmoi",
+    "dotfiles",
+    "configuration"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "chezmoi-vsc.helloWorld",
-        "title": "Hello World"
+        "command": "chezmoi-vsc.openPreviewToSide",
+        "title": "Open Preview to Side",
+        "category": "Chezmoi",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "chezmoi-vsc.apply",
+        "title": "Apply",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.applyFile",
+        "title": "Apply this file",
+        "category": "Chezmoi",
+        "icon": "$(check)"
+      },
+      {
+        "command": "chezmoi-vsc.reAdd",
+        "title": "Re-add from home",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.forget",
+        "title": "Forget",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.addCurrentFile",
+        "title": "Add Current File",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.refresh",
+        "title": "Refresh",
+        "category": "Chezmoi",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "chezmoi-vsc.showStatus",
+        "title": "Show Status",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.showDiff",
+        "title": "Show Diff",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.openDiff",
+        "title": "Open Diff",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.openEntry",
+        "title": "Open",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.openSource",
+        "title": "Open Source",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.openTarget",
+        "title": "Open Target",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.copyTargetPath",
+        "title": "Copy Target Path",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.editConfig",
+        "title": "Edit Config",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.openSourceDirectory",
+        "title": "Open Source Directory",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.statusBarMenu",
+        "title": "Menu",
+        "category": "Chezmoi"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "chezmoi",
+          "title": "chezmoi",
+          "icon": "media/chezmoi.svg"
+        }
+      ]
+    },
+    "views": {
+      "chezmoi": [
+        {
+          "id": "chezmoiStatus",
+          "name": "Dotfiles"
+        }
+      ]
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "chezmoi-vsc.applyFile",
+          "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.reAdd",
+          "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.forget",
+          "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.openDiff",
+          "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.openEntry",
+          "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.openSource",
+          "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.openTarget",
+          "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.copyTargetPath",
+          "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.statusBarMenu",
+          "when": "false"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "chezmoi-vsc.openPreviewToSide",
+          "when": "resourceScheme == file && resourceExtname == .tmpl",
+          "group": "navigation"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "chezmoi-vsc.refresh",
+          "when": "view == chezmoiStatus",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "chezmoi-vsc.applyFile",
+          "when": "view == chezmoiStatus && viewItem == chezmoiFileChanged",
+          "group": "inline"
+        },
+        {
+          "command": "chezmoi-vsc.applyFile",
+          "when": "view == chezmoiStatus && viewItem == chezmoiFileChanged",
+          "group": "1_apply@1"
+        },
+        {
+          "command": "chezmoi-vsc.reAdd",
+          "when": "view == chezmoiStatus && viewItem == chezmoiFileChanged",
+          "group": "1_apply@2"
+        },
+        {
+          "command": "chezmoi-vsc.openDiff",
+          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile/",
+          "group": "1_apply@3"
+        },
+        {
+          "command": "chezmoi-vsc.openSource",
+          "when": "view == chezmoiStatus && (viewItem =~ /^chezmoiFile/ || viewItem == chezmoiScript)",
+          "group": "2_open@1"
+        },
+        {
+          "command": "chezmoi-vsc.openTarget",
+          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile/",
+          "group": "2_open@2"
+        },
+        {
+          "command": "chezmoi-vsc.copyTargetPath",
+          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile/",
+          "group": "2_open@3"
+        },
+        {
+          "command": "chezmoi-vsc.forget",
+          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile/",
+          "group": "3_danger@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "chezmoi",
+      "properties": {
+        "chezmoi.executable": {
+          "type": "string",
+          "default": "chezmoi",
+          "description": "Path to the chezmoi binary."
+        },
+        "chezmoi.sourceDir": {
+          "type": "string",
+          "default": "",
+          "description": "Override the source directory (empty = auto-detect via `chezmoi source-path`)."
+        },
+        "chezmoi.preview.autoOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically open the preview when opening a .tmpl file."
+        },
+        "chezmoi.preview.debounce": {
+          "type": "number",
+          "default": 300,
+          "description": "Milliseconds to wait before refreshing the preview on edit."
+        },
+        "chezmoi.preview.maxFileSize": {
+          "type": "number",
+          "default": 1048576,
+          "description": "Skip preview for files larger than this (bytes)."
+        },
+        "chezmoi.statusBar.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the chezmoi status bar item."
+        },
+        "chezmoi.tree.managedView": {
+          "type": "string",
+          "enum": [
+            "tree",
+            "list"
+          ],
+          "enumDescriptions": [
+            "Nested directory tree of all managed files.",
+            "Flat list of all managed target paths."
+          ],
+          "default": "tree",
+          "description": "How to display the full list of managed files in the sidebar."
+        },
+        "chezmoi.tree.clickAction": {
+          "type": "string",
+          "enum": [
+            "diff",
+            "source",
+            "target"
+          ],
+          "enumDescriptions": [
+            "Open a diff (rendered target ↔ home).",
+            "Open the source file.",
+            "Open the target file in $HOME."
+          ],
+          "default": "diff",
+          "description": "Action when clicking a file node in the sidebar."
+        },
+        "chezmoi.notifications.applyReminder": {
+          "type": "string",
+          "enum": [
+            "off",
+            "statusBarOnly",
+            "toast"
+          ],
+          "default": "statusBarOnly",
+          "description": "How to notify when source files change."
+        },
+        "chezmoi.advanced.executeTemplateArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extra arguments to pass to `chezmoi execute-template`."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",

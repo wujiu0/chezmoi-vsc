@@ -8,11 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A VS Code extension that brings the [chezmoi](https://www.chezmoi.io/) dotfiles workflow into the editor: live template preview, an apply-reminder status bar item, a pending-changes TreeView, and a command palette wrapper around the `chezmoi` CLI binary.
 
-**Current state vs. intended state.** The `src/` code is still the `yo code` Hello World scaffold (`chezmoi-vsc.helloWorld`). The real product is fully specified in two Chinese-language docs that are the source of truth — read them before implementing anything:
+**Current state.** The MVP (features F1–F4, milestones M0–M3) is implemented under `src/`; the Hello World scaffold is gone. The two Chinese-language docs remain the source of truth for *what* the product should do — read them before changing behavior:
 - `docs/DESIGN.md` — product design: features F1–F4, module architecture (§5.1), error-handling strategy (§5.3), config schema (§5.4), chezmoi command/lock reference (Appendix A).
 - `docs/PLAN.md` — implementation plan: milestones M0–M4, target file layout under `src/`, per-day tasks and acceptance criteria.
 
-Note the docs predate the current scaffold and disagree with it in places (they say npm + `engines.vscode ^1.85`, the repo uses pnpm + `^1.120.0`; they name the command `chezmoi.hello`, the scaffold has `chezmoi-vsc.helloWorld`). When they conflict, `package.json` and the actual toolchain win for *how to build*; the docs win for *what to build*.
+When the docs conflict with the repo, `package.json` and the actual toolchain win for *how to build* (pnpm, `engines ^1.120.0`, `chezmoi-vsc.*` command prefix); the docs win for *what to build*.
+
+**Reality vs. docs, learned during build:** `chezmoi status` / `chezmoi managed` emit **target** paths (e.g. `.zshrc`), not source names like the DESIGN §4.3 tree mockup implies. chezmoi resolves target args against cwd, so `cat`/`apply`/`re-add`/`forget`/`source-path` must be handed an **absolute** `$HOME/<target>` path. `execa` (DESIGN §5.2) was dropped for `node:child_process` — execa is ESM-only, the extension host is CommonJS; the spawn boundary lives entirely in `ChezmoiCli`.
 
 ## Commands
 
