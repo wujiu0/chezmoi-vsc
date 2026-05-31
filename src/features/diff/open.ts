@@ -9,19 +9,14 @@ import { PreviewProvider, targetPreviewUri } from '../preview/provider';
  *   right = actual file in `$HOME`
  */
 export async function openDiff(
-	context: ChezmoiContext,
-	provider: PreviewProvider,
-	targetRelPath: string,
+  context: ChezmoiContext,
+  provider: PreviewProvider,
+  targetRelPath: string,
 ): Promise<void> {
-	const left = targetPreviewUri(targetRelPath);
-	provider.refresh(left); // ensure freshly rendered
-	const right = vscode.Uri.file(path.join(context.homeDir, targetRelPath));
-	const name = path.basename(targetRelPath);
+  const left = targetPreviewUri(targetRelPath);
+  provider.refresh(left); // ensure freshly rendered
+  const right = vscode.Uri.file(path.join(context.homeDir, targetRelPath));
+  const name = path.basename(targetRelPath);
 
-	await vscode.commands.executeCommand(
-		'vscode.diff',
-		left,
-		right,
-		`${name} (chezmoi ↔ home)`,
-	);
+  await vscode.commands.executeCommand('vscode.diff', left, right, `${name} (chezmoi ↔ home)`);
 }

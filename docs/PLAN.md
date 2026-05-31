@@ -22,13 +22,13 @@
 
 ## 1. 里程碑总览
 
-| 里程碑 | 时长 | 产出 | 验收 |
-|---|---|---|---|
-| **M0 脚手架** | 2 天 | 可激活的空扩展 + CI | F5 能跑起来,有一条 hello 命令能执行 |
-| **M1 预览** | 3 天 | F1 完整功能 | 打开 `.tmpl` 文件,旁边能看渲染结果,编辑会刷新 |
-| **M2 状态栏 + Watcher** | 3 天 | F2 完整功能 | 改 source 文件,状态栏数字会变 |
-| **M3 TreeView + Diff** | 3 天 | F3 + F4 完整功能 | 侧边栏能看到 pending 列表,点击能打开 diff |
-| **M4 打磨与发布** | 3 天 | v0.1.0 发布到 marketplace | 能搜到、能装、不崩 |
+| 里程碑                  | 时长 | 产出                      | 验收                                          |
+| ----------------------- | ---- | ------------------------- | --------------------------------------------- |
+| **M0 脚手架**           | 2 天 | 可激活的空扩展 + CI       | F5 能跑起来,有一条 hello 命令能执行           |
+| **M1 预览**             | 3 天 | F1 完整功能               | 打开 `.tmpl` 文件,旁边能看渲染结果,编辑会刷新 |
+| **M2 状态栏 + Watcher** | 3 天 | F2 完整功能               | 改 source 文件,状态栏数字会变                 |
+| **M3 TreeView + Diff**  | 3 天 | F3 + F4 完整功能          | 侧边栏能看到 pending 列表,点击能打开 diff     |
+| **M4 打磨与发布**       | 3 天 | v0.1.0 发布到 marketplace | 能搜到、能装、不崩                            |
 
 ---
 
@@ -81,14 +81,10 @@ chezmoi-vscode/
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other", "SCM Providers"],
   "keywords": ["chezmoi", "dotfiles", "configuration"],
-  "activationEvents": [
-    "onStartupFinished"
-  ],
+  "activationEvents": ["onStartupFinished"],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      { "command": "chezmoi.hello", "title": "Chezmoi: Hello" }
-    ]
+    "commands": [{ "command": "chezmoi.hello", "title": "Chezmoi: Hello" }]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -340,26 +336,28 @@ src/
 
 ## 7. 风险与对策
 
-| 风险 | 影响 | 概率 | 对策 |
-|---|---|---|---|
-| chezmoi 命令输出格式跨版本不稳 | 中 | 中 | 启动时检测版本,< 2.40 直接降级。CI 矩阵跑 3 个版本 |
-| `execute-template` 在加密文件上会卡住等密码 | 高 | 中 | 预览前用 `chezmoi managed` 检查 attr,加密文件跳过自动预览,改为按需 |
-| Windows 路径处理出错 | 中 | 高 | 全程用 `vscode.Uri`,不手拼路径;CI 加 Windows runner |
-| Watcher 在大型 source dir 卡顿 | 中 | 低 | 默认监听 `**/*`,提供配置项 `chezmoi.watcher.exclude` |
-| 用户没装 chezmoi 装了我们 | 低 | 高 | 激活时检测,降级模式 + 一次性安装提示 |
-| 双向修改冲突(MM)处理复杂 | 中 | 中 | MVP 只标红,不提供自动合并;v2 接入 chezmoi merge |
-| publisher 申请被卡 | 高 | 低 | 启动前就申请,不要等到 M4 |
+| 风险                                        | 影响 | 概率 | 对策                                                               |
+| ------------------------------------------- | ---- | ---- | ------------------------------------------------------------------ |
+| chezmoi 命令输出格式跨版本不稳              | 中   | 中   | 启动时检测版本,< 2.40 直接降级。CI 矩阵跑 3 个版本                 |
+| `execute-template` 在加密文件上会卡住等密码 | 高   | 中   | 预览前用 `chezmoi managed` 检查 attr,加密文件跳过自动预览,改为按需 |
+| Windows 路径处理出错                        | 中   | 高   | 全程用 `vscode.Uri`,不手拼路径;CI 加 Windows runner                |
+| Watcher 在大型 source dir 卡顿              | 中   | 低   | 默认监听 `**/*`,提供配置项 `chezmoi.watcher.exclude`               |
+| 用户没装 chezmoi 装了我们                   | 低   | 高   | 激活时检测,降级模式 + 一次性安装提示                               |
+| 双向修改冲突(MM)处理复杂                    | 中   | 中   | MVP 只标红,不提供自动合并;v2 接入 chezmoi merge                    |
+| publisher 申请被卡                          | 高   | 低   | 启动前就申请,不要等到 M4                                           |
 
 ---
 
 ## 8. 后续节奏
 
 发布 v0.1.0 之后:
+
 - **Week 1**:监控 issues,只修 bug 不加 feature
 - **Week 2**:根据 marketplace 评论 + GitHub issue 的高频请求决定 v0.2 内容
 - **Month 2**:启动 v1.0(LSP 那个大头)的设计文档
 
 不订强 KPI,但建议跟踪:
+
 - marketplace 装机数(每周看一次)
 - GitHub stars 增长(自然指标)
 - issue 平均响应时长(质量指标)
@@ -368,21 +366,21 @@ src/
 
 ## 9. 第一周每日的具体可见产出
 
-| Day | 你应该能给我看什么 |
-|---|---|
-| 1 | F5 跑起来,执行命令弹 toast |
-| 2 | CI 绿色,vsix 能打包 |
-| 3 | 单元测试:source path → target path 转换全过 |
-| 4 | 命令面板执行 Open Preview,右侧出现内容(可能没高亮) |
-| 5 | 编辑左侧,右侧自动刷新;错误情况能优雅显示 |
-| 6 | 单元测试:status 解析全过 |
-| 7 | 状态栏数字能动,但还没接 watcher |
-| 8 | 改 source 文件,状态栏自动变化;Apply All 工作 |
-| 9 | TreeView 可见,但点击还不打开 diff |
-| 10 | 点击文件能看到 diff |
-| 11 | 右键菜单完整,Add Current File 工作 |
-| 12 | 三个平台手测过,有 bug 列表 |
-| 13 | README 写完,GIF 录好 |
-| 14 | marketplace 上线,能搜到 |
+| Day | 你应该能给我看什么                                 |
+| --- | -------------------------------------------------- |
+| 1   | F5 跑起来,执行命令弹 toast                         |
+| 2   | CI 绿色,vsix 能打包                                |
+| 3   | 单元测试:source path → target path 转换全过        |
+| 4   | 命令面板执行 Open Preview,右侧出现内容(可能没高亮) |
+| 5   | 编辑左侧,右侧自动刷新;错误情况能优雅显示           |
+| 6   | 单元测试:status 解析全过                           |
+| 7   | 状态栏数字能动,但还没接 watcher                    |
+| 8   | 改 source 文件,状态栏自动变化;Apply All 工作       |
+| 9   | TreeView 可见,但点击还不打开 diff                  |
+| 10  | 点击文件能看到 diff                                |
+| 11  | 右键菜单完整,Add Current File 工作                 |
+| 12  | 三个平台手测过,有 bug 列表                         |
+| 13  | README 写完,GIF 录好                               |
+| 14  | marketplace 上线,能搜到                            |
 
 每天结束 push 一个 daily branch,我们一起复盘。

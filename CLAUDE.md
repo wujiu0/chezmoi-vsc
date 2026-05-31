@@ -8,11 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A VS Code extension that brings the [chezmoi](https://www.chezmoi.io/) dotfiles workflow into the editor: live template preview, an apply-reminder status bar item, a pending-changes TreeView, and a command palette wrapper around the `chezmoi` CLI binary.
 
-**Current state.** The MVP (features F1–F4, milestones M0–M3) is implemented under `src/`; the Hello World scaffold is gone. The two Chinese-language docs remain the source of truth for *what* the product should do — read them before changing behavior:
+**Current state.** The MVP (features F1–F4, milestones M0–M3) is implemented under `src/`; the Hello World scaffold is gone. The two Chinese-language docs remain the source of truth for _what_ the product should do — read them before changing behavior:
+
 - `docs/DESIGN.md` — product design: features F1–F4, module architecture (§5.1), error-handling strategy (§5.3), config schema (§5.4), chezmoi command/lock reference (Appendix A).
 - `docs/PLAN.md` — implementation plan: milestones M0–M4, target file layout under `src/`, per-day tasks and acceptance criteria.
 
-When the docs conflict with the repo, `package.json` and the actual toolchain win for *how to build* (pnpm, `engines ^1.120.0`, `chezmoi-vsc.*` command prefix); the docs win for *what to build*.
+When the docs conflict with the repo, `package.json` and the actual toolchain win for _how to build_ (pnpm, `engines ^1.120.0`, `chezmoi-vsc.*` command prefix); the docs win for _what to build_.
 
 **Reality vs. docs, learned during build:** `chezmoi status` / `chezmoi managed` emit **target** paths (e.g. `.zshrc`), not source names like the DESIGN §4.3 tree mockup implies. chezmoi resolves target args against cwd, so `cat`/`apply`/`re-add`/`forget`/`source-path` must be handed an **absolute** `$HOME/<target>` path. `execa` (DESIGN §5.2) was dropped for `node:child_process` — execa is ESM-only, the extension host is CommonJS; the spawn boundary lives entirely in `ChezmoiCli`.
 
@@ -38,7 +39,7 @@ Tests use Mocha via `@vscode/test-cli`. The runner (`.vscode-test.mjs`) download
 
 The extension is a thin UI layer over the `chezmoi` CLI. `extension.ts` is the entry point; everything else hangs off these collaborators:
 
-- **ChezmoiCli** — the *only* place that spawns the `chezmoi` binary (planned via `execa`). All command I/O funnels through here.
+- **ChezmoiCli** — the _only_ place that spawns the `chezmoi` binary (planned via `execa`). All command I/O funnels through here.
 - **ChezmoiContext** — resolves source dir / binary path / config once at activation, broadcasts changes via `EventEmitter`.
 - **StatusService** — runs `chezmoi status`, parses it into `StatusEntry[]`, exposes `onDidChange`. The single source of truth that StatusBar and TreeProvider both subscribe to.
 - **Watcher** — `FileSystemWatcher` on the source dir, debounced, triggers `StatusService.refresh()`.
@@ -57,5 +58,5 @@ The extension is a thin UI layer over the `chezmoi` CLI. `extension.ts` is the e
 - The preview pipes file content through `chezmoi execute-template` over **stdin** deliberately — this avoids chezmoi's requirement that `-f` targets live inside the source dir.
 - Encrypted files can block `execute-template` waiting for a passphrase; never auto-preview them — check `chezmoi managed` attributes first.
 - Use `vscode.Uri` / `path.posix` vs `path.win32` for all path work (Windows + WSL/Remote-SSH support is a goal; the extension runs host-side as a `workspace` extension).
-- `execute-template` failures must render *inside* the preview (it's a high-frequency operation), not as toasts. Reserve toasts for `apply`/`add` failures, with full output going to an OutputChannel.
+- `execute-template` failures must render _inside_ the preview (it's a high-frequency operation), not as toasts. Reserve toasts for `apply`/`add` failures, with full output going to an OutputChannel.
 - TypeScript is `strict`, `module: Node16`, `target: ES2022`. ESLint flat config (`eslint.config.mjs`) warns on missing `curly`, non-`===`, missing `semi`, and non-camel/Pascal import names.
