@@ -100,6 +100,16 @@
         "category": "Chezmoi"
       },
       {
+        "command": "chezmoi-vsc.encrypt",
+        "title": "Encrypt…",
+        "category": "Chezmoi"
+      },
+      {
+        "command": "chezmoi-vsc.decrypt",
+        "title": "Decrypt…",
+        "category": "Chezmoi"
+      },
+      {
         "command": "chezmoi-vsc.editConfig",
         "title": "Edit Config",
         "category": "Chezmoi"
@@ -167,6 +177,14 @@
           "when": "false"
         },
         {
+          "command": "chezmoi-vsc.encrypt",
+          "when": "false"
+        },
+        {
+          "command": "chezmoi-vsc.decrypt",
+          "when": "false"
+        },
+        {
           "command": "chezmoi-vsc.statusBarMenu",
           "when": "false"
         },
@@ -206,17 +224,17 @@
       "view/item/context": [
         {
           "command": "chezmoi-vsc.applyFile",
-          "when": "view == chezmoiStatus && viewItem == chezmoiFileChanged",
+          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile.*Changed$/",
           "group": "inline"
         },
         {
           "command": "chezmoi-vsc.applyFile",
-          "when": "view == chezmoiStatus && viewItem == chezmoiFileChanged",
+          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile.*Changed$/",
           "group": "1_apply@1"
         },
         {
           "command": "chezmoi-vsc.reAdd",
-          "when": "view == chezmoiStatus && viewItem == chezmoiFileChanged",
+          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile.*Changed$/",
           "group": "1_apply@2"
         },
         {
@@ -240,9 +258,19 @@
           "group": "2_open@3"
         },
         {
+          "command": "chezmoi-vsc.encrypt",
+          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile(Changed)?$/",
+          "group": "3_encrypt@1"
+        },
+        {
+          "command": "chezmoi-vsc.decrypt",
+          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFileEncrypted/",
+          "group": "3_encrypt@1"
+        },
+        {
           "command": "chezmoi-vsc.forget",
           "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile/",
-          "group": "3_danger@1"
+          "group": "4_danger@1"
         }
       ]
     },

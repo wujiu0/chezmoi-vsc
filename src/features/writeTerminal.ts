@@ -18,18 +18,46 @@ function quoteArg(arg: string): string {
  * gives the user that TTY and full visibility instead of an opaque failure.
  * Sequential `sendText` calls are serialized by the shell itself.
  */
+export interface RunOptions {
+	/** Environment variables prepended to the command line (per-invocation). */
+	env?: Record<string, string>;
+}
+
 export class WriteTerminal {
 	private terminal: vscode.Terminal | undefined;
 
 	constructor(private readonly binaryProvider: () => string) {}
 
-	run(args: string[]): void {
+	run(args: string[], options: RunOptions = {}): void {
+		this.runChained([args], options);
+	}
+
+	/**
+	 * Send multiple commands as a single `&&`-chained shell line. Necessary
+	 * when the terminal is still being initialized: separate `sendText` calls
+	 * race with shell startup, and the second one can be swallowed by the
+	 * first command's stdin. Chaining with `&&` also short-circuits — if the
+	 * earlier command fails, later ones don't run.
+	 */
+	runChained(commands: string[][], options: RunOptions = {}): void {
+		if (commands.length === 0) {
+			return;
+		}
 		if (!this.terminal || this.terminal.exitStatus !== undefined) {
 			this.terminal = vscode.window.createTerminal({ name: TERMINAL_NAME });
 		}
 		this.terminal.show(true);
-		const command = [this.binaryProvider(), ...args].map(quoteArg).join(' ');
-		this.terminal.sendText(command);
+
+		const envPrefix = options.env
+			? Object.entries(options.env)
+					.map(([k, v]) => `${k}=${quoteArg(v)}`)
+					.join(' ') + ' '
+			: '';
+		const binary = this.binaryProvider();
+		const parts = commands.map((args) =>
+			[binary, ...args].map(quoteArg).join(' '),
+		);
+		this.terminal.sendText(envPrefix + parts.join(' && '));
 	}
 
 	owns(terminal: vscode.Terminal): boolean {

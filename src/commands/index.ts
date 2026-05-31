@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { ChezmoiCli } from '../chezmoi/cli';
 import { ChezmoiContext } from '../chezmoi/context';
+import { parseSourcePath } from '../chezmoi/paths';
 import { CommandQueue } from '../chezmoi/queue';
 import { StatusService } from '../services/statusService';
 import { openDiff } from '../features/diff/open';
@@ -84,6 +85,50 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
 		return [];
 	};
 
+	// Toggle encryption on a managed file: forget --force the current source,
+	// then re-add from $HOME with (or without) --encrypt. Template-ness is
+	// preserved by inspecting the existing source filename first — `chezmoi add`
+	// detects file mode but not `.tmpl`, so we must opt in explicitly.
+	const reAddWithEncryption = async (rel: string, encrypt: boolean): Promise<void> => {
+		if (!requireReady()) {
+			return;
+		}
+		const abs = targetAbs(rel);
+
+		// Resolve current source path before forgetting, so we can read attributes.
+		const srcResult = await queue.runRead(() =>
+			cli.exec(['source-path', abs], { cwd: context.sourceDir, timeout: 5000 }),
+		);
+		const srcAbs = srcResult.stdout.trim();
+		if (srcResult.code !== 0 || srcAbs.length === 0) {
+			void vscode.window.showErrorMessage(
+				`chezmoi: cannot resolve source path for ${rel}.`,
+			);
+			return;
+		}
+
+		let isTemplate = false;
+		if (context.sourceDir) {
+			const srcRel = path
+				.relative(context.sourceDir, srcAbs)
+				.split(path.sep)
+				.join('/');
+			isTemplate = parseSourcePath(srcRel).isTemplate;
+		}
+
+		const addFlags: string[] = [];
+		if (encrypt) {
+			addFlags.push('--encrypt');
+		}
+		if (isTemplate) {
+			addFlags.push('--template');
+		}
+		writeTerminal.runChained([
+			['forget', '--force', abs],
+			['add', ...addFlags, abs],
+		]);
+	};
+
 	const addPaths = (fsPaths: string[]): void => {
 		if (!requireReady()) {
 			return;
@@ -148,6 +193,38 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
 			runWrite(['forget', targetAbs(rel)]);
 		}),
 
+		register('chezmoi-vsc.encrypt', async (arg?: unknown) => {
+			const rel = toTargetRel(arg);
+			if (!rel) {
+				return;
+			}
+			const choice = await vscode.window.showWarningMessage(
+				`Encrypt "${rel}"? chezmoi will forget the source and re-add it with encryption. Make sure encryption is configured in your chezmoi config.`,
+				{ modal: true },
+				'Encrypt',
+			);
+			if (choice !== 'Encrypt') {
+				return;
+			}
+			await reAddWithEncryption(rel, true);
+		}),
+
+		register('chezmoi-vsc.decrypt', async (arg?: unknown) => {
+			const rel = toTargetRel(arg);
+			if (!rel) {
+				return;
+			}
+			const choice = await vscode.window.showWarningMessage(
+				`Decrypt "${rel}"? The source will be rewritten as plaintext — anyone with access to your source directory can read it.`,
+				{ modal: true },
+				'Decrypt',
+			);
+			if (choice !== 'Decrypt') {
+				return;
+			}
+			await reAddWithEncryption(rel, false);
+		}),
+
 		register('chezmoi-vsc.addCurrentFile', () => {
 			addPaths(resolveAddTargets(undefined, undefined));
 		}),
@@ -198,8 +275,14 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
 			const result = await queue.runRead(() =>
 				cli.exec(['diff'], { cwd: context.sourceDir, timeout: 30000 }),
 			);
+			if (result.stdout.trim().length === 0) {
+				void vscode.window.showInformationMessage(
+					'chezmoi: no remaining differences.',
+				);
+				return;
+			}
 			const doc = await vscode.workspace.openTextDocument({
-				content: result.stdout || '# chezmoi: no differences',
+				content: result.stdout,
 				language: 'diff',
 			});
 			await vscode.window.showTextDocument(doc, { preview: true });
@@ -208,6 +291,16 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
 		register('chezmoi-vsc.openSource', async (arg?: unknown) => {
 			const rel = toTargetRel(arg);
 			if (!rel || !requireReady()) {
+				return;
+			}
+			// Encrypted source files are unreadable ciphertext on disk — route
+			// through `chezmoi edit`, which decrypts to a temp file, opens it
+			// in $EDITOR, and re-encrypts on close. Forcing EDITOR=code --wait
+			// gives the user a normal VS Code tab to edit in.
+			if (statusService.encrypted.has(rel)) {
+				writeTerminal.run(['edit', targetAbs(rel)], {
+					env: { EDITOR: 'code --wait' },
+				});
 				return;
 			}
 			const result = await queue.runRead(() =>
