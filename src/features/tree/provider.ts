@@ -54,6 +54,7 @@ export class TreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
 	private rootSections(): SectionNode[] {
 		const entries = this.statusService.entries;
+		const encrypted = this.statusService.encrypted;
 		const statusByPath = new Map<string, StatusEntry>();
 		for (const entry of entries) {
 			statusByPath.set(entry.targetRelPath, entry);
@@ -68,6 +69,7 @@ export class TreeProvider implements vscode.TreeDataProvider<TreeNode> {
 				targetRelPath: entry.targetRelPath,
 				entry,
 				isScript: entry.isScript,
+				isEncrypted: encrypted.has(entry.targetRelPath),
 			}));
 			sections.push({
 				kind: 'section',
@@ -83,8 +85,8 @@ export class TreeProvider implements vscode.TreeDataProvider<TreeNode> {
 			.get<string>('tree.managedView', 'tree');
 		const managedChildren =
 			view === 'list'
-				? managed.map((p) => this.fileNode(p, p, statusByPath))
-				: this.buildTree(managed, statusByPath);
+				? managed.map((p) => this.fileNode(p, p, statusByPath, encrypted))
+				: this.buildTree(managed, statusByPath, encrypted);
 
 		sections.push({
 			kind: 'section',
@@ -100,6 +102,7 @@ export class TreeProvider implements vscode.TreeDataProvider<TreeNode> {
 		label: string,
 		targetRelPath: string,
 		statusByPath: Map<string, StatusEntry>,
+		encrypted: ReadonlySet<string>,
 	): FileNode {
 		return {
 			kind: 'file',
@@ -107,12 +110,14 @@ export class TreeProvider implements vscode.TreeDataProvider<TreeNode> {
 			targetRelPath,
 			entry: statusByPath.get(targetRelPath),
 			isScript: false,
+			isEncrypted: encrypted.has(targetRelPath),
 		};
 	}
 
 	private buildTree(
 		paths: string[],
 		statusByPath: Map<string, StatusEntry>,
+		encrypted: ReadonlySet<string>,
 	): TreeNode[] {
 		const root: DirAcc = { dirs: new Map(), files: [] };
 		for (const p of paths) {
@@ -140,7 +145,7 @@ export class TreeProvider implements vscode.TreeDataProvider<TreeNode> {
 				}));
 			const fileNodes: FileNode[] = acc.files
 				.sort((a, b) => a.localeCompare(b))
-				.map((full) => this.fileNode(basename(full), full, statusByPath));
+				.map((full) => this.fileNode(basename(full), full, statusByPath, encrypted));
 			return [...dirNodes, ...fileNodes];
 		};
 

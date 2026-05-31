@@ -24,6 +24,7 @@ export interface FileNode {
 	/** Present when the file has a pending change (drives the status badge). */
 	entry?: StatusEntry;
 	isScript: boolean;
+	isEncrypted: boolean;
 }
 
 export type TreeNode = SectionNode | DirNode | FileNode;
@@ -53,9 +54,14 @@ export function toTreeItem(node: TreeNode, homeDir: string): vscode.TreeItem {
 	}
 
 	const item = new vscode.TreeItem(node.label, vscode.TreeItemCollapsibleState.None);
-	item.tooltip = node.entry
-		? `${node.targetRelPath} [${codeLabel(node.entry)}]`
-		: node.targetRelPath;
+	const tooltipBits = [node.targetRelPath];
+	if (node.entry) {
+		tooltipBits.push(`[${codeLabel(node.entry)}]`);
+	}
+	if (node.isEncrypted) {
+		tooltipBits.push('[encrypted]');
+	}
+	item.tooltip = tooltipBits.join(' ');
 
 	if (node.isScript) {
 		item.iconPath = new vscode.ThemeIcon(
@@ -71,8 +77,16 @@ export function toTreeItem(node: TreeNode, homeDir: string): vscode.TreeItem {
 
 	// Regular file/symlink: themed file icon via resourceUri. Changed files get
 	// their color + badge from ChezmoiDecorationProvider (git-style), not here.
+	// Encryption is the only thing that overrides the file-type icon, since the
+	// padlock signals "you can't open this directly" — more salient than type.
 	item.resourceUri = vscode.Uri.file(path.join(homeDir, node.targetRelPath));
-	item.contextValue = node.entry ? 'chezmoiFileChanged' : 'chezmoiFile';
+	if (node.isEncrypted) {
+		item.iconPath = new vscode.ThemeIcon('lock');
+	}
+	// contextValue encodes encryption + change so right-click menu can gate
+	// Encrypt/Decrypt actions and Apply/Re-add visibility precisely.
+	const base = node.isEncrypted ? 'chezmoiFileEncrypted' : 'chezmoiFile';
+	item.contextValue = node.entry ? `${base}Changed` : base;
 	item.command = {
 		command: 'chezmoi-vsc.openEntry',
 		title: 'Open',
