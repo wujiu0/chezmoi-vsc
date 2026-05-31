@@ -1,0 +1,8 @@
+# Commits listed here are skipped by `git blame` so format-only changes
+# don't pollute line history. GitHub honors this file automatically;
+# locally, opt in once with:
+#
+#     git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: format codebase with oxfmt
+2e36dfd9967449b3e834bae73dd5c8ebf4874e46
