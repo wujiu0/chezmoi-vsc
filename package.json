@@ -4,6 +4,16 @@
   "version": "0.1.0",
   "publisher": "wujiu0",
   "description": "Bring the chezmoi dotfiles workflow into VS Code: live template preview, apply reminders, and a pending-changes view.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wujiu0/chezmoi-vsc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wujiu0/chezmoi-vsc/issues"
+  },
+  "homepage": "https://github.com/wujiu0/chezmoi-vsc#readme",
+  "icon": "media/icon.png",
   "categories": [
     "Other",
     "SCM Providers"
@@ -16,7 +26,9 @@
   "files": [
     "out/extension.js",
     "media/",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
   ],
   "type": "module",
   "main": "./out/extension.js",
