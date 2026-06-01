@@ -79,6 +79,9 @@ export class CommandQueue {
   private schedule(): void {
     while (this.queue.length > 0) {
       const next = this.queue[0];
+      if (next === undefined) {
+        return;
+      }
 
       if (next.kind === 'write') {
         if (this.activeWriter || this.activeReaders > 0) {

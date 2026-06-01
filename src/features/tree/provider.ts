@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { ChezmoiContext } from '../../chezmoi/context';
-import { StatusEntry } from '../../chezmoi/status';
-import { DirNode, FileNode, SectionNode, toTreeItem, TreeNode } from './item';
+import type { StatusEntry } from '../../chezmoi/status';
 import { StatusService } from '../../services/statusService';
+import type { DirNode, FileNode, SectionNode, TreeNode } from './item';
+import { toTreeItem } from './item';
 
 export const TREE_VIEW_ID = 'chezmoiStatus';
 
@@ -123,6 +124,9 @@ export class TreeProvider implements vscode.TreeDataProvider<TreeNode> {
       let cursor = root;
       for (let i = 0; i < parts.length - 1; i++) {
         const segment = parts[i];
+        if (segment === undefined) {
+          continue;
+        }
         let next = cursor.dirs.get(segment);
         if (!next) {
           next = { dirs: new Map(), files: [] };

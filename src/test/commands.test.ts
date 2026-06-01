@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { toTargetRel } from '../commands';
-import { StatusEntry } from '../chezmoi/status';
+import type { StatusEntry } from '../chezmoi/status';
 
 const entry: StatusEntry = {
   targetRelPath: '.zshrc',

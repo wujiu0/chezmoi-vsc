@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ExecResult } from '../chezmoi/cli';
+import type { ExecResult } from '../chezmoi/cli';
 
 /** Thin wrapper over an OutputChannel; the sink for every chezmoi command. */
 export class Logger {

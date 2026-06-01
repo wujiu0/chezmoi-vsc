@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { ChezmoiContext } from '../../chezmoi/context';
-import { StatusEntry } from '../../chezmoi/status';
+import type { StatusEntry } from '../../chezmoi/status';
 import { StatusService } from '../../services/statusService';
 
 function decorationFor(entry: StatusEntry): vscode.FileDecoration {

@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { StatusEntry } from '../../chezmoi/status';
+import type { StatusEntry } from '../../chezmoi/status';
 
 export interface SectionNode {
   kind: 'section';
@@ -22,7 +22,7 @@ export interface FileNode {
   /** Target path relative to `$HOME`. */
   targetRelPath: string;
   /** Present when the file has a pending change (drives the status badge). */
-  entry?: StatusEntry;
+  entry?: StatusEntry | undefined;
   isScript: boolean;
   isEncrypted: boolean;
 }

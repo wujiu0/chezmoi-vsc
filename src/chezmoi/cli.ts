@@ -8,7 +8,7 @@ export interface ExecResult {
 }
 
 export interface ExecOptions {
-  cwd?: string;
+  cwd?: string | undefined;
   /** Kill the process after this many milliseconds. 0 / undefined = no limit. */
   timeout?: number;
   /** Piped to the child's stdin (used by execute-template). */

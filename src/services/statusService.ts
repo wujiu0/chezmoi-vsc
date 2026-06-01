@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { ChezmoiCli } from '../chezmoi/cli';
 import { ChezmoiContext } from '../chezmoi/context';
 import { CommandQueue } from '../chezmoi/queue';
-import { parseManaged, parseStatus, StatusEntry } from '../chezmoi/status';
+import { parseManaged, parseStatus } from '../chezmoi/status';
+import type { StatusEntry } from '../chezmoi/status';
 import { Logger } from '../util/log';
 
 /**
