@@ -23,11 +23,12 @@
   "scripts": {
     "vscode:prepublish": "pnpm run typecheck && pnpm run build",
     "build": "tsdown",
+    "build:test": "tsdown src/extension.ts \"src/test/**/*.test.ts\"",
     "watch": "tsdown --watch",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src",
     "format": "oxfmt .",
-    "pretest": "pnpm run lint && pnpm run typecheck && pnpm run build",
+    "pretest": "pnpm run lint && pnpm run typecheck && pnpm run build:test",
     "test": "vscode-test"
   },
   "devDependencies": {
