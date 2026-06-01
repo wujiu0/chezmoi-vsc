@@ -2,6 +2,7 @@
   "name": "chezmoi-vsc",
   "displayName": "chezmoi",
   "version": "0.1.0",
+  "publisher": "wujiu0",
   "description": "Bring the chezmoi dotfiles workflow into VS Code: live template preview, apply reminders, and a pending-changes view.",
   "categories": [
     "Other",
@@ -11,6 +12,11 @@
     "chezmoi",
     "configuration",
     "dotfiles"
+  ],
+  "files": [
+    "out/extension.js",
+    "media/",
+    "CHANGELOG.md"
   ],
   "type": "module",
   "main": "./out/extension.js",

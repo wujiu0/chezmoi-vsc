@@ -1,71 +1,45 @@
-# chezmoi-vsc README
+# chezmoi for VS Code
 
-This is the README for your extension "chezmoi-vsc". After writing up a brief description, we recommend including the following sections.
+Bring the [chezmoi](https://www.chezmoi.io/) dotfiles workflow into the editor: live template preview, an apply reminder, and a pending-changes view — all wired to your local `chezmoi` CLI.
+
+> **Status:** early MVP (v0.1.0), packaged for small-scale testing. Expect rough edges and please report issues.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Live template preview** — open a `*.tmpl` source file and run **Chezmoi: Open Preview to Side** to see the rendered output, refreshed as you type. Rendering pipes the file through `chezmoi execute-template`; errors render inside the preview, not as popups.
+- **Apply reminder in the status bar** — a status bar item shows the number of pending changes (`$(sync) chezmoi: N`) and turns to `$(check) chezmoi` when everything is applied. Click it for a quick menu (Apply All, Show Diff, Show Status, Refresh, …).
+- **Dotfiles view** — a tree in the **chezmoi** activity-bar container lists managed files and pending changes. Per-item actions: apply this file, re-add from `$HOME`, open diff, open source/target, copy target path, encrypt/decrypt, and forget.
+- **Command palette wrapper** — common `chezmoi` operations without leaving the editor: Apply, Add Current File, Re-add, Forget, Show Status, Show Diff, Encrypt…/Decrypt…, Edit Config, Open Source Directory, Refresh.
 
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+The extension serializes mutating commands (chezmoi holds a write lock) and lets read commands run concurrently, so actions triggered in quick succession stay consistent.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- **chezmoi** installed and on your `PATH` (or point `chezmoi.executable` at the binary). See the [chezmoi install guide](https://www.chezmoi.io/install/).
+- **VS Code 1.120 or newer.** The extension runs in the Node extension host (it spawns the `chezmoi` binary), so it does not work in web/`vscode.dev`.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+| Setting | Default | Description |
+| --- | --- | --- |
+| `chezmoi.executable` | `"chezmoi"` | Path to the chezmoi binary. |
+| `chezmoi.sourceDir` | `""` | Override the source directory (empty = auto-detect via `chezmoi source-path`). |
+| `chezmoi.preview.autoOpen` | `false` | Automatically open the preview when opening a `.tmpl` file. |
+| `chezmoi.preview.debounce` | `300` | Milliseconds to wait before refreshing the preview on edit. |
+| `chezmoi.preview.maxFileSize` | `1048576` | Skip preview for files larger than this (bytes). |
+| `chezmoi.statusBar.enabled` | `true` | Show the chezmoi status bar item. |
+| `chezmoi.tree.managedView` | `"tree"` | Show managed files as a nested `tree` or a flat `list`. |
+| `chezmoi.tree.clickAction` | `"diff"` | Action when clicking a file node: `diff`, `source`, or `target`. |
+| `chezmoi.notifications.applyReminder` | `"statusBarOnly"` | How to notify when source files change: `off`, `statusBarOnly`, or `toast`. |
+| `chezmoi.advanced.executeTemplateArgs` | `[]` | Extra arguments to pass to `chezmoi execute-template`. |
 
-For example:
+## Known limitations
 
-This extension contributes the following settings:
+- Encrypted files are never auto-previewed (rendering them can block waiting for a passphrase); use the explicit Decrypt action instead.
+- Web / `vscode.dev` is not supported — the extension needs a local `chezmoi` binary.
 
-- `myExtension.enable`: Enable/disable this extension.
-- `myExtension.thing`: Set to `blah` to do something.
+## Release notes
 
-## Known Issues
+### 0.1.0
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-- Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-- Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-- Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial MVP: template preview, status-bar apply reminder, pending-changes tree, and command-palette wrappers around the `chezmoi` CLI.
