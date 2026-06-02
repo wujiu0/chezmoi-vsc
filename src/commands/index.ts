@@ -8,7 +8,7 @@ import { StatusService } from '../services/statusService';
 import { openDiff } from '../features/diff/open';
 import { PreviewProvider } from '../features/preview/provider';
 import { WriteTerminal } from '../features/writeTerminal';
-import { TREE_VIEW_ID } from '../features/tree/provider';
+import { CHANGES_VIEW_ID } from '../features/tree/provider';
 
 const INSTALL_URL = 'https://www.chezmoi.io/install/';
 
@@ -229,7 +229,7 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
 
     register('chezmoi-vsc.showStatus', async () => {
       await statusService.refresh();
-      await vscode.commands.executeCommand(`${TREE_VIEW_ID}.focus`);
+      await vscode.commands.executeCommand(`${CHANGES_VIEW_ID}.focus`);
     }),
 
     register('chezmoi-vsc.openDiff', async (arg?: unknown) => {

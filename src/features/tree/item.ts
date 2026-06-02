@@ -2,13 +2,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { StatusEntry } from '../../chezmoi/status';
 
-export interface SectionNode {
-  kind: 'section';
-  label: string;
-  count: number;
-  children: TreeNode[];
-}
-
 export interface DirNode {
   kind: 'dir';
   label: string;
@@ -27,19 +20,13 @@ export interface FileNode {
   isEncrypted: boolean;
 }
 
-export type TreeNode = SectionNode | DirNode | FileNode;
+export type TreeNode = DirNode | FileNode;
 
 function codeLabel(entry: StatusEntry): string {
   return (entry.code1 + entry.code2).trim();
 }
 
 export function toTreeItem(node: TreeNode, homeDir: string): vscode.TreeItem {
-  if (node.kind === 'section') {
-    const item = new vscode.TreeItem(`${node.label} (${node.count})`, vscode.TreeItemCollapsibleState.Expanded);
-    item.contextValue = 'chezmoiSection';
-    return item;
-  }
-
   if (node.kind === 'dir') {
     const item = new vscode.TreeItem(node.label, vscode.TreeItemCollapsibleState.Collapsed);
     item.iconPath = new vscode.ThemeIcon('folder');

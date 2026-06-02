@@ -8,7 +8,12 @@ import { PreviewProvider } from './features/preview/provider';
 import { registerPreview } from './features/preview/commands';
 import { StatusBar } from './features/statusBar/item';
 import { registerWatcher } from './features/watcher';
-import { TreeProvider, TREE_VIEW_ID } from './features/tree/provider';
+import {
+  CHANGES_VIEW_ID,
+  ChangesTreeProvider,
+  MANAGED_VIEW_ID,
+  ManagedTreeProvider,
+} from './features/tree/provider';
 import { ChezmoiDecorationProvider } from './features/tree/decorations';
 import { WriteTerminal } from './features/writeTerminal';
 import { registerCommands } from './commands';
@@ -61,11 +66,26 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
   );
 
-  const treeProvider = new TreeProvider(chezmoi, statusService);
-  const treeView = vscode.window.createTreeView(TREE_VIEW_ID, {
-    treeDataProvider: treeProvider,
+  const changesProvider = new ChangesTreeProvider(chezmoi, statusService);
+  const managedProvider = new ManagedTreeProvider(chezmoi, statusService);
+  const changesView = vscode.window.createTreeView(CHANGES_VIEW_ID, {
+    treeDataProvider: changesProvider,
   });
-  context.subscriptions.push(treeProvider, treeView);
+  const managedView = vscode.window.createTreeView(MANAGED_VIEW_ID, {
+    treeDataProvider: managedProvider,
+  });
+  context.subscriptions.push(changesProvider, managedProvider, changesView, managedView);
+
+  // Activity-bar-style badge with the pending count on the Changes view.
+  const updateChangesBadge = (): void => {
+    const count = statusService.pendingCount;
+    changesView.badge =
+      count > 0
+        ? { value: count, tooltip: `${count} pending chezmoi change${count === 1 ? '' : 's'}` }
+        : undefined;
+  };
+  context.subscriptions.push(statusService.onDidChange(updateChangesBadge));
+  updateChangesBadge();
 
   const decorationProvider = new ChezmoiDecorationProvider(chezmoi, statusService);
   context.subscriptions.push(decorationProvider, vscode.window.registerFileDecorationProvider(decorationProvider));

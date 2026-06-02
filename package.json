@@ -65,7 +65,8 @@
       {
         "command": "chezmoi-vsc.apply",
         "title": "Apply",
-        "category": "Chezmoi"
+        "category": "Chezmoi",
+        "icon": "$(check-all)"
       },
       {
         "command": "chezmoi-vsc.applyFile",
@@ -172,11 +173,25 @@
     "views": {
       "chezmoi": [
         {
-          "id": "chezmoiStatus",
-          "name": "Dotfiles"
+          "id": "chezmoiChanges",
+          "name": "Changes"
+        },
+        {
+          "id": "chezmoiManaged",
+          "name": "Managed"
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "chezmoiChanges",
+        "contents": "No pending chezmoi changes — your dotfiles are up to date."
+      },
+      {
+        "view": "chezmoiManaged",
+        "contents": "No managed files.\n[Add Current File](command:chezmoi-vsc.addCurrentFile)\n[Open Source Directory](command:chezmoi-vsc.openSourceDirectory)"
+      }
+    ],
     "menus": {
       "commandPalette": [
         {
@@ -251,60 +266,65 @@
       ],
       "view/title": [
         {
+          "command": "chezmoi-vsc.apply",
+          "when": "view == chezmoiChanges",
+          "group": "navigation@1"
+        },
+        {
           "command": "chezmoi-vsc.refresh",
-          "when": "view == chezmoiStatus",
-          "group": "navigation"
+          "when": "view == chezmoiChanges || view == chezmoiManaged",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
         {
           "command": "chezmoi-vsc.applyFile",
-          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile.*Changed$/",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && viewItem =~ /^chezmoiFile.*Changed$/",
           "group": "inline"
         },
         {
           "command": "chezmoi-vsc.applyFile",
-          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile.*Changed$/",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && viewItem =~ /^chezmoiFile.*Changed$/",
           "group": "1_apply@1"
         },
         {
           "command": "chezmoi-vsc.reAdd",
-          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile.*Changed$/",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && viewItem =~ /^chezmoiFile.*Changed$/",
           "group": "1_apply@2"
         },
         {
           "command": "chezmoi-vsc.openDiff",
-          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile/",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && viewItem =~ /^chezmoiFile/",
           "group": "1_apply@3"
         },
         {
           "command": "chezmoi-vsc.openSource",
-          "when": "view == chezmoiStatus && (viewItem =~ /^chezmoiFile/ || viewItem == chezmoiScript)",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && (viewItem =~ /^chezmoiFile/ || viewItem == chezmoiScript)",
           "group": "2_open@1"
         },
         {
           "command": "chezmoi-vsc.openTarget",
-          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile/",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && viewItem =~ /^chezmoiFile/",
           "group": "2_open@2"
         },
         {
           "command": "chezmoi-vsc.copyTargetPath",
-          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile/",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && viewItem =~ /^chezmoiFile/",
           "group": "2_open@3"
         },
         {
           "command": "chezmoi-vsc.encrypt",
-          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile(Changed)?$/",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && viewItem =~ /^chezmoiFile(Changed)?$/",
           "group": "3_encrypt@1"
         },
         {
           "command": "chezmoi-vsc.decrypt",
-          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFileEncrypted/",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && viewItem =~ /^chezmoiFileEncrypted/",
           "group": "3_encrypt@1"
         },
         {
           "command": "chezmoi-vsc.forget",
-          "when": "view == chezmoiStatus && viewItem =~ /^chezmoiFile/",
+          "when": "(view == chezmoiChanges || view == chezmoiManaged) && viewItem =~ /^chezmoiFile/",
           "group": "4_danger@1"
         }
       ]
