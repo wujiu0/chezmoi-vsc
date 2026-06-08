@@ -57,6 +57,36 @@
   "contributes": {
     "commands": [
       {
+        "command": "chezmoi-vsc.init",
+        "title": "Initialize…",
+        "category": "Chezmoi",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "chezmoi-vsc.update",
+        "title": "Update (Pull & Apply)",
+        "category": "Chezmoi",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "chezmoi-vsc.push",
+        "title": "Push",
+        "category": "Chezmoi",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "chezmoi-vsc.commitAndPush",
+        "title": "Commit All & Push…",
+        "category": "Chezmoi",
+        "icon": "$(git-commit)"
+      },
+      {
+        "command": "chezmoi-vsc.openInSourceControl",
+        "title": "Open in Source Control",
+        "category": "Chezmoi",
+        "icon": "$(source-control)"
+      },
+      {
         "command": "chezmoi-vsc.openPreviewToSide",
         "title": "Open Preview to Side",
         "category": "Chezmoi",
@@ -185,11 +215,33 @@
     "viewsWelcome": [
       {
         "view": "chezmoiChanges",
-        "contents": "No pending chezmoi changes — your dotfiles are up to date."
+        "contents": "No pending chezmoi changes — your dotfiles are up to date.",
+        "when": "chezmoiState == ok"
+      },
+      {
+        "view": "chezmoiChanges",
+        "contents": "chezmoi has no source directory on this machine yet.\nClone an existing dotfiles repo or start fresh.\n[Initialize chezmoi…](command:chezmoi-vsc.init)",
+        "when": "chezmoiState == notInitialized"
+      },
+      {
+        "view": "chezmoiChanges",
+        "contents": "The chezmoi binary was not found.\n[Install chezmoi](https://www.chezmoi.io/install/)",
+        "when": "chezmoiState == notInstalled"
       },
       {
         "view": "chezmoiManaged",
-        "contents": "No managed files.\n[Add Current File](command:chezmoi-vsc.addCurrentFile)\n[Open Source Directory](command:chezmoi-vsc.openSourceDirectory)"
+        "contents": "No managed files.\n[Add Current File](command:chezmoi-vsc.addCurrentFile)\n[Open Source Directory](command:chezmoi-vsc.openSourceDirectory)\n[Open in Source Control](command:chezmoi-vsc.openInSourceControl)",
+        "when": "chezmoiState == ok"
+      },
+      {
+        "view": "chezmoiManaged",
+        "contents": "chezmoi has no source directory on this machine yet.\n[Initialize chezmoi…](command:chezmoi-vsc.init)",
+        "when": "chezmoiState == notInitialized"
+      },
+      {
+        "view": "chezmoiManaged",
+        "contents": "The chezmoi binary was not found.\n[Install chezmoi](https://www.chezmoi.io/install/)",
+        "when": "chezmoiState == notInstalled"
       }
     ],
     "menus": {
@@ -274,6 +326,11 @@
           "command": "chezmoi-vsc.refresh",
           "when": "view == chezmoiChanges || view == chezmoiManaged",
           "group": "navigation@2"
+        },
+        {
+          "command": "chezmoi-vsc.update",
+          "when": "view == chezmoiChanges",
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
@@ -407,6 +464,11 @@
           },
           "default": [],
           "description": "Extra arguments to pass to `chezmoi execute-template`."
+        },
+        "chezmoi.git.aheadBehind": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show ahead/behind counts (⇡/⇣) for the source repo in the chezmoi menu. Disable to skip the extra `git rev-list` probe."
         }
       }
     }

@@ -6,8 +6,12 @@ import { parseSourcePath } from '../chezmoi/paths';
 import { CommandQueue } from '../chezmoi/queue';
 import { StatusService } from '../services/statusService';
 import { openDiff } from '../features/diff/open';
+import { runInit } from '../features/init/init';
+import { runCommitAndPush, runPush, runUpdate } from '../features/git/sync';
+import { openInSourceControl } from '../features/git/sourceControl';
 import { PreviewProvider } from '../features/preview/provider';
 import { WriteTerminal } from '../features/writeTerminal';
+import { GitSyncService } from '../services/gitSyncService';
 import { CHANGES_VIEW_ID } from '../features/tree/provider';
 
 const INSTALL_URL = 'https://www.chezmoi.io/install/';
@@ -30,12 +34,13 @@ export interface CommandDeps {
   context: ChezmoiContext;
   queue: CommandQueue;
   statusService: StatusService;
+  gitSyncService: GitSyncService;
   previewProvider: PreviewProvider;
   writeTerminal: WriteTerminal;
 }
 
 export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
-  const { cli, context, queue, statusService, previewProvider, writeTerminal } = deps;
+  const { cli, context, queue, statusService, gitSyncService, previewProvider, writeTerminal } = deps;
 
   const requireReady = (): boolean => {
     if (context.available) {
@@ -146,6 +151,38 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
   const disposables: vscode.Disposable[] = [];
 
   disposables.push(
+    register('chezmoi-vsc.init', async () => {
+      await runInit({ context, writeTerminal });
+    }),
+
+    register('chezmoi-vsc.update', () => {
+      if (!requireReady()) {
+        return;
+      }
+      runUpdate({ context, writeTerminal });
+    }),
+
+    register('chezmoi-vsc.push', () => {
+      if (!requireReady()) {
+        return;
+      }
+      runPush({ context, writeTerminal });
+    }),
+
+    register('chezmoi-vsc.commitAndPush', async () => {
+      if (!requireReady()) {
+        return;
+      }
+      await runCommitAndPush({ context, writeTerminal });
+    }),
+
+    register('chezmoi-vsc.openInSourceControl', async () => {
+      if (!requireReady()) {
+        return;
+      }
+      await openInSourceControl(context);
+    }),
+
     register('chezmoi-vsc.apply', () => {
       runWrite(['apply']);
     }),
@@ -342,7 +379,7 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable[] {
     }),
 
     register('chezmoi-vsc.statusBarMenu', async () => {
-      await showStatusBarMenu(context, statusService);
+      await showStatusBarMenu(context, statusService, gitSyncService);
     }),
   );
 
@@ -353,11 +390,39 @@ interface MenuItem extends vscode.QuickPickItem {
   run: () => Thenable<unknown>;
 }
 
-async function showStatusBarMenu(context: ChezmoiContext, statusService: StatusService): Promise<void> {
+async function showStatusBarMenu(
+  context: ChezmoiContext,
+  statusService: StatusService,
+  gitSyncService: GitSyncService,
+): Promise<void> {
   if (context.state === 'notInstalled') {
     const choice = await vscode.window.showWarningMessage('chezmoi binary not found.', 'Install chezmoi');
     if (choice) {
       void vscode.env.openExternal(vscode.Uri.parse(INSTALL_URL));
+    }
+    return;
+  }
+
+  if (context.state === 'notInitialized') {
+    const items: MenuItem[] = [
+      {
+        label: '$(cloud-download) Initialize chezmoi…',
+        run: () => vscode.commands.executeCommand('chezmoi-vsc.init'),
+      },
+      {
+        label: '$(refresh) Refresh',
+        run: () => vscode.commands.executeCommand('chezmoi-vsc.refresh'),
+      },
+      {
+        label: '$(gear) Settings',
+        run: () => vscode.commands.executeCommand('workbench.action.openSettings', 'chezmoi'),
+      },
+    ];
+    const picked = await vscode.window.showQuickPick(items, {
+      placeHolder: 'chezmoi is not initialized on this machine',
+    });
+    if (picked) {
+      await picked.run();
     }
     return;
   }
@@ -379,6 +444,31 @@ async function showStatusBarMenu(context: ChezmoiContext, statusService: StatusS
       },
     );
   }
+  // Remote sync group. Ahead/behind counts (when an upstream exists) decorate
+  // the Push/Update entries so the user sees what's out of sync at a glance.
+  const sync = gitSyncService.state;
+  const ahead = sync?.hasUpstream && sync.ahead > 0 ? `⇡${sync.ahead}` : undefined;
+  const behind = sync?.hasUpstream && sync.behind > 0 ? `⇣${sync.behind}` : undefined;
+  items.push(
+    {
+      label: '$(arrow-up) Push',
+      ...(ahead ? { description: ahead } : {}),
+      run: () => vscode.commands.executeCommand('chezmoi-vsc.push'),
+    },
+    {
+      label: '$(cloud-download) Update (Pull & Apply)',
+      ...(behind ? { description: behind } : {}),
+      run: () => vscode.commands.executeCommand('chezmoi-vsc.update'),
+    },
+    {
+      label: '$(git-commit) Commit All & Push…',
+      run: () => vscode.commands.executeCommand('chezmoi-vsc.commitAndPush'),
+    },
+    {
+      label: '$(source-control) Open in Source Control',
+      run: () => vscode.commands.executeCommand('chezmoi-vsc.openInSourceControl'),
+    },
+  );
   items.push(
     {
       label: '$(refresh) Refresh',

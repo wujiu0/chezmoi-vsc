@@ -3,6 +3,7 @@ import { ChezmoiCli } from './chezmoi/cli';
 import { ChezmoiContext } from './chezmoi/context';
 import { CommandQueue } from './chezmoi/queue';
 import { StatusService } from './services/statusService';
+import { GitSyncService } from './services/gitSyncService';
 import { Logger } from './util/log';
 import { PreviewProvider } from './features/preview/provider';
 import { registerPreview } from './features/preview/commands';
@@ -35,8 +36,21 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const chezmoi = new ChezmoiContext(cli);
   context.subscriptions.push(chezmoi);
 
+  // Mirror the resolved state into a context key so the views' welcome content
+  // (install / initialize / empty) can branch on it. `initialize()` fires
+  // onDidChange, so the subscription keeps this in sync; seed it once up front
+  // for the brief window before the first resolution completes.
+  const syncStateContext = (): void => {
+    void vscode.commands.executeCommand('setContext', 'chezmoiState', chezmoi.state);
+  };
+  context.subscriptions.push(chezmoi.onDidChange(syncStateContext));
+  syncStateContext();
+
   const statusService = new StatusService(cli, chezmoi, queue, log);
   context.subscriptions.push(statusService);
+
+  const gitSyncService = new GitSyncService(cli, chezmoi, queue);
+  context.subscriptions.push(gitSyncService);
 
   const previewProvider = new PreviewProvider(cli, chezmoi, queue);
   context.subscriptions.push(previewProvider, ...registerPreview(chezmoi, previewProvider));
@@ -96,17 +110,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       context: chezmoi,
       queue,
       statusService,
+      gitSyncService,
       previewProvider,
       writeTerminal,
     }),
   );
 
   // Mutating commands run in the write terminal; refresh status once each
-  // finishes (shell integration provides the completion signal).
+  // finishes (shell integration provides the completion signal). `chezmoi init`
+  // is the one write that can change source-dir resolution, and it's the only
+  // command that runs while not yet ok — so re-resolve the context in that case
+  // to pick up a freshly created source directory before refreshing status.
   context.subscriptions.push(
-    vscode.window.onDidEndTerminalShellExecution((event) => {
+    vscode.window.onDidEndTerminalShellExecution(async (event) => {
       if (writeTerminal.owns(event.terminal)) {
+        if (chezmoi.state !== 'ok') {
+          await chezmoi.initialize();
+        }
         void statusService.refresh();
+        void gitSyncService.refresh();
       }
     }),
   );
@@ -127,6 +149,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       if (event.affectsConfiguration('chezmoi.executable') || event.affectsConfiguration('chezmoi.sourceDir')) {
         await chezmoi.initialize();
         await statusService.refresh();
+        void gitSyncService.refresh();
+      }
+      if (event.affectsConfiguration('chezmoi.git.aheadBehind')) {
+        void gitSyncService.refresh();
       }
       if (event.affectsConfiguration('chezmoi.statusBar.enabled')) {
         statusBar.refresh();
@@ -145,6 +171,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       });
   }
   await statusService.refresh();
+  void gitSyncService.refresh();
 }
 
 export function deactivate(): void {}
